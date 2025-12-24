@@ -1,55 +1,205 @@
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+} from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { useUser } from "@/context/UserContext";
 
 export default function OTPScreen() {
   const router = useRouter();
-  const { mobile } = useLocalSearchParams();
-  const [otp, setOtp] = useState("");
+  const { mobile } = useLocalSearchParams<{ mobile: string }>();
+  const { setUser } = useUser();
+  const [otp, setOtp] = useState(["", "", "", ""]);
+  const [error, setError] = useState("");
+  const inputs = useRef<Array<TextInput | null>>([]);
+
+  const handleChange = (value: string, index: number) => {
+    if (!/^\d?$/.test(value)) return;
+    if (error) setError("");
+
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
+
+    if (value && index < 3) {
+      inputs.current[index + 1]?.focus();
+    }
+  };
 
   const verifyOtp = () => {
-    if (otp === "123") {
-      router.replace({
-        pathname: "/(tabs)",
-        params: { mobile },
-      });
+    const enteredOtp = otp.join("");
+
+    if (enteredOtp !== "1234") {
+      setError("Incorrect OTP. Please try again.");
+      return;
     }
+    setUser({ mobile: mobile });
+    router.replace({
+      pathname: "/(tabs)",
+      params: { mobile },
+    });
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>Verify OTP</Text>
-      <Text>OTP sent to {mobile}</Text>
+      {/* BACK ICON */}
+      <TouchableOpacity style={styles.back} onPress={() => router.back()}>
+        <Ionicons name="arrow-back" size={24} color="#fff" />
+      </TouchableOpacity>
 
-      <TextInput
-        placeholder="Enter OTP"
-        keyboardType="numeric"
-        style={styles.input}
-        onChangeText={setOtp}
+      {/* TOP IMAGE */}
+      <Image
+        source={require("../assets/images/pizza.png")}
+        style={styles.image}
       />
 
-      <TouchableOpacity style={styles.button} onPress={verifyOtp}>
-        <Text style={styles.buttonText}>Verify</Text>
-      </TouchableOpacity>
+      {/* WHITE CARD */}
+      <View style={styles.card}>
+        <Text style={styles.heading}>Welcome Back</Text>
+        <Text style={styles.subHeading}>Login to your account</Text>
+
+        <Text style={styles.otpLabel}>Enter OTP</Text>
+
+        {/* OTP BOXES */}
+        <View style={styles.otpRow}>
+          {otp.map((digit, index) => (
+            <TextInput
+              key={index}
+              ref={(ref) => {
+                inputs.current[index] = ref;
+              }}
+              value={digit}
+              onChangeText={(v) => handleChange(v, index)}
+              keyboardType="numeric"
+              maxLength={1}
+              style={styles.otpBox}
+            />
+          ))}
+        </View>
+        {error ? <Text style={styles.error}>{error}</Text> : null}
+
+        {/* CONTINUE BUTTON */}
+        <TouchableOpacity style={styles.button} onPress={verifyOtp}>
+          <Text style={styles.buttonText}>Continue</Text>
+        </TouchableOpacity>
+
+        {/* RESEND */}
+        <Text style={styles.resend}>Resend OTP</Text>
+
+        {/* SIGN UP */}
+        <Text style={styles.footer}>
+          Don’t have an account?{" "}
+          <Text style={styles.signup} onPress={() => router.replace("/signup")}>
+            Sign up
+          </Text>
+        </Text>
+      </View>
     </View>
   );
 }
 
+/* ================= STYLES ================= */
+
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", padding: 24 },
-  heading: { fontSize: 24, fontWeight: "700", marginBottom: 20 },
-  input: {
-    borderWidth: 1,
-    borderColor: "#FFC529",
-    borderRadius: 10,
-    padding: 14,
-    marginVertical: 20,
+  container: {
+    flex: 1,
+    backgroundColor: "#000",
   },
-  button: {
-    backgroundColor: "#FFC529",
-    padding: 16,
-    borderRadius: 10,
+
+  back: {
+    position: "absolute",
+    top: 50,
+    left: 20,
+    zIndex: 10,
+  },
+
+  image: {
+    width: "100%",
+    height: "30%",
+  },
+
+  card: {
+    flex: 1,
+    backgroundColor: "#fff",
+    marginTop: -30,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    padding: 24,
     alignItems: "center",
   },
-  buttonText: { fontWeight: "600" },
+
+  heading: {
+    fontSize: 26,
+    fontWeight: "700",
+    marginTop: 20,
+  },
+
+  subHeading: {
+    color: "#777",
+    marginBottom: 30,
+  },
+
+  otpLabel: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 16,
+  },
+
+  otpRow: {
+    flexDirection: "row",
+    gap: 12,
+    marginBottom: 30,
+  },
+
+  otpBox: {
+    width: 55,
+    height: 55,
+    borderWidth: 1.5,
+    borderColor: "#FFC529",
+    borderRadius: 10,
+    textAlign: "center",
+    fontSize: 20,
+    backgroundColor: "#FFF6DC",
+  },
+  error: {
+    textAlign: "center",
+    color: "red",
+    fontSize: 14,
+    marginBottom: 12,
+  },
+
+  button: {
+    backgroundColor: "#FFC529",
+    width: "100%",
+    padding: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    marginBottom: 20,
+  },
+
+  buttonText: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+
+  resend: {
+    color: "#FFC529",
+    fontWeight: "600",
+    marginBottom: 30,
+  },
+
+  footer: {
+    color: "#777",
+  },
+
+  signup: {
+    color: "#FFC529",
+    fontWeight: "600",
+  },
 });

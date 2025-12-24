@@ -6,9 +6,22 @@ import {
   TextInput,
   Platform,
   FlatList,
+  Image,
+  TouchableOpacity,
 } from "react-native";
-import MapView, { Marker } from "react-native-maps";
+import { Ionicons } from "@expo/vector-icons";
+import MapView, { Marker, Region } from "react-native-maps";
 import { API_URL } from "@/constants/api";
+import { useUser } from "@/context/UserContext";
+import { router } from "expo-router";
+
+/* ---------------- TYPES ---------------- */
+
+type Location = {
+  address: string;
+  latitude: number;
+  longitude: number;
+};
 
 type Truck = {
   id: number;
@@ -17,27 +30,64 @@ type Truck = {
   longitude: number;
 };
 
-const USER_LOCATION = {
-  latitude: 28.6139,
-  longitude: 77.209,
-};
-
-
+/* ---------------- SCREEN ---------------- */
 
 export default function MapScreen() {
+  const { user } = useUser(); // ✅ mobile from context
+
+  const [location, setLocation] = useState<Location | null>(null);
   const [trucks, setTrucks] = useState<Truck[]>([]);
+  const [region, setRegion] = useState<Region | null>(null);
+
+  /* ---------------- FETCH USER LOCATION ---------------- */
 
   useEffect(() => {
-    const fetchTrucks = async () => {
-      const res = await fetch(
-        `${API_URL}/api/foodtrucks/nearby?lat=28.6139&lng=77.209`
-      );
-      const data = await res.json();
-      setTrucks(data);
+    if (!user?.mobile) return;
+
+    const fetchLocation = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/user/by-mobile/${user.mobile}`);
+        const data = await res.json();
+
+        if (data?.location) {
+          setLocation(data.location);
+
+          setRegion({
+            latitude: data.location.latitude,
+            longitude: data.location.longitude,
+            latitudeDelta: 0.01,
+            longitudeDelta: 0.01,
+          });
+
+          generateNearbyTrucks(data.location.latitude, data.location.longitude);
+        }
+      } catch (err) {
+        console.log("Location fetch error", err);
+      }
     };
 
-    fetchTrucks();
-  }, []);
+    fetchLocation();
+  }, [user]);
+
+  /* ---------------- GENERATE TRUCKS (LOCAL LOGIC) ---------------- */
+
+  const generateNearbyTrucks = (lat: number, lng: number) => {
+    const generated: Truck[] = [];
+
+    for (let i = 0; i < 6; i++) {
+      generated.push({
+        id: i + 1,
+        name: `Food Truck ${i + 1}`,
+        latitude: lat + (Math.random() - 0.5) * 0.01,
+        longitude: lng + (Math.random() - 0.5) * 0.01,
+      });
+    }
+
+    setTrucks(generated);
+  };
+
+  /* ---------------- WEB FALLBACK ---------------- */
+
   if (Platform.OS === "web") {
     return (
       <View style={styles.webFallback}>
@@ -46,27 +96,27 @@ export default function MapScreen() {
     );
   }
 
+  if (!region) return null;
+
+  /* ---------------- UI ---------------- */
+
   return (
     <View style={styles.container}>
       {/* MAP */}
-      <MapView
-        style={StyleSheet.absoluteFillObject}
-        initialRegion={{
-          latitude: USER_LOCATION.latitude,
-          longitude: USER_LOCATION.longitude,
-          latitudeDelta: 0.01,
-          longitudeDelta: 0.01,
-        }}
-        showsUserLocation
-      >
+      <MapView style={StyleSheet.absoluteFillObject} region={region}>
         {/* USER LOCATION */}
-        <Marker coordinate={USER_LOCATION}>
-          <View style={styles.homeMarker}>
-            <Text style={styles.homeText}>Home</Text>
-          </View>
-        </Marker>
+        {location && (
+          <Marker
+            coordinate={{
+              latitude: location.latitude,
+              longitude: location.longitude,
+            }}
+          >
+            <Ionicons name="location-sharp" size={36} color="#FF3B30" />
+          </Marker>
+        )}
 
-        {/* FOOD TRUCKS */}
+        {/* TRUCKS */}
         {trucks.map((truck) => (
           <Marker
             key={truck.id}
@@ -83,12 +133,25 @@ export default function MapScreen() {
       {/* TOP OVERLAY */}
       <View style={styles.topOverlay}>
         <View style={styles.locationRow}>
-          <Text style={styles.locationIcon}>📍</Text>
+          <Ionicons name="location-sharp" size={36} color="#FFC529"/>
+
           <View>
-            <Text style={styles.email}>Foodtruck@gmail.com</Text>
-            <Text style={styles.city}>Indore, M.P</Text>
+            <Text style={styles.email}>{user?.mobile}</Text>
+            <Text style={styles.city}>
+              {location?.address || "Your location"}
+            </Text>
           </View>
-          <Text style={styles.bell}>🔔</Text>
+
+          <TouchableOpacity
+            onPress={() => router.push("/notification")}
+            style={styles.bellWrapper}
+          >
+            <Ionicons
+              name="notifications-outline"
+              size={25}
+              style={styles.bell}
+            />
+          </TouchableOpacity>
         </View>
 
         <TextInput placeholder="Search" style={styles.searchBox} />
@@ -116,12 +179,13 @@ export default function MapScreen() {
   );
 }
 
+/* ---------------- STYLES (UNCHANGED) ---------------- */
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
 
-  /* TOP */
   topOverlay: {
     position: "absolute",
     top: 50,
@@ -152,22 +216,24 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#666",
   },
+  bellWrapper: {
+    marginLeft: "auto",
+  },
 
   bell: {
     marginLeft: "auto",
-    fontSize: 20,
+    fontSize: 25,
   },
 
   searchBox: {
     marginTop: 12,
-    backgroundColor: "#fff",
+    backgroundColor: "#FFF6DC",
     padding: 14,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: "#FFC529",
   },
 
-  /* MARKERS */
   truckIcon: {
     fontSize: 20,
   },
@@ -178,6 +244,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     borderRadius: 8,
   },
+  userPin: {
+    width: 40,
+    height: 40,
+  },
 
   homeText: {
     color: "#fff",
@@ -185,7 +255,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 
-  /* BOTTOM */
   bottomSheet: {
     position: "absolute",
     bottom: 0,
