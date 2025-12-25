@@ -36,6 +36,7 @@ export default function MapScreen() {
   const { user } = useUser(); // ✅ mobile from context
 
   const [location, setLocation] = useState<Location | null>(null);
+  const [name, setName] = useState<string | null>(null);
   const [trucks, setTrucks] = useState<Truck[]>([]);
   const [region, setRegion] = useState<Region | null>(null);
 
@@ -51,7 +52,7 @@ export default function MapScreen() {
 
         if (data?.location) {
           setLocation(data.location);
-
+            setName(data.name);
           setRegion({
             latitude: data.location.latitude,
             longitude: data.location.longitude,
@@ -136,7 +137,7 @@ export default function MapScreen() {
           <Ionicons name="location-sharp" size={36} color="#FFC529"/>
 
           <View>
-            <Text style={styles.email}>{user?.mobile}</Text>
+            <Text style={styles.email}>{name}</Text>
             <Text style={styles.city}>
               {location?.address || "Your location"}
             </Text>
