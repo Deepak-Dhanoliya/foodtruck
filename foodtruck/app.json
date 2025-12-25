@@ -12,6 +12,7 @@
       "supportsTablet": true
     },
     "android": {
+      "userInterfaceStyle": "light",
       "config": {
         "googleMaps": {
           "apiKey": "AIzaSyBVfz_schZ6BMaV8C6FSbJOizbdjeNPwGY"

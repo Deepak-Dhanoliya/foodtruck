@@ -84,6 +84,7 @@ export default function SignupScreen() {
       {/* Name */}
       <TextInput
         placeholder="Enter your name"
+        placeholderTextColor="#766868ff"
         style={styles.input}
         value={form.name}
         onChangeText={(v) => handleChange("name", v)}
@@ -93,6 +94,7 @@ export default function SignupScreen() {
       {/* Email */}
       <TextInput
         placeholder="Enter your E-mail ID"
+        placeholderTextColor="#766868ff"
         style={styles.input}
         keyboardType="email-address"
         value={form.email}
@@ -103,6 +105,7 @@ export default function SignupScreen() {
       {/* Mobile */}
       <TextInput
         placeholder="Enter your mobile no."
+        placeholderTextColor="#766868ff"
         keyboardType="phone-pad"
         style={styles.input}
         value={form.mobile}
@@ -113,6 +116,7 @@ export default function SignupScreen() {
       {/* Age */}
       <TextInput
         placeholder="Enter your Age"
+        placeholderTextColor="#766868ff"
         keyboardType="numeric"
         style={styles.input}
         value={form.age}
@@ -123,6 +127,7 @@ export default function SignupScreen() {
       {/* City */}
       <TextInput
         placeholder="Enter your City"
+        placeholderTextColor="#766868ff"
         style={styles.input}
         value={form.city}
         onChangeText={(v) => handleChange("city", v)}

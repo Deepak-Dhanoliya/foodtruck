@@ -85,7 +85,7 @@ export default function FavouriteScreen() {
           </TouchableOpacity>
         </View>
 
-        <TextInput placeholder="Search" style={styles.search} />
+        <TextInput placeholder="Search" placeholderTextColor="#766868ff" style={styles.search} />
       </View>
 
       {/* LIST */}

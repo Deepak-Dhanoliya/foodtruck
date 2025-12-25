@@ -155,7 +155,7 @@ export default function MapScreen() {
           </TouchableOpacity>
         </View>
 
-        <TextInput placeholder="Search" style={styles.searchBox} />
+        <TextInput placeholder="Search" placeholderTextColor="#766868ff" style={styles.searchBox} />
       </View>
 
       {/* BOTTOM SHEET */}
