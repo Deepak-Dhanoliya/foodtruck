@@ -35,4 +35,13 @@ router.post("/location", async (req, res) => {
   res.json({ success: true });
 });
 
+// SAVE PUSH TOKEN
+router.post("/save-token", async (req, res) => {
+  const { mobile, pushToken } = req.body;
+
+  await User.updateOne({ mobile }, { $set: { pushToken } });
+
+  res.json({ success: true });
+});
+
 export default router;

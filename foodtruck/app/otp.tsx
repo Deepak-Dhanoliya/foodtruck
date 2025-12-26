@@ -10,6 +10,8 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState, useRef } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { useUser } from "@/context/UserContext";
+import { registerForPushNotifications } from "@/utils/notification";
+import { API_URL } from "@/constants/api";
 
 export default function OTPScreen() {
   const router = useRouter();
@@ -32,14 +34,24 @@ export default function OTPScreen() {
     }
   };
 
-  const verifyOtp = () => {
+  const verifyOtp = async () => {
     const enteredOtp = otp.join("");
 
     if (enteredOtp !== "1234") {
       setError("Incorrect OTP. Please try again.");
       return;
     }
-    setUser({ mobile: mobile });
+    const token = await registerForPushNotifications();
+    setUser({
+      mobile,
+      pushToken: token,
+    });
+
+    await fetch(`${API_URL}/api/user/save-token`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mobile, pushToken: token }),
+    });
     router.replace({
       pathname: "/(tabs)",
       params: { mobile },

@@ -1,18 +1,13 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState } from "react";
 
 type User = {
   mobile: string;
-  name?: string;
+  pushToken?: string;
 };
 
-type UserContextType = {
-  user: User | null;
-  setUser: (user: User | null) => void;
-};
+const UserContext = createContext<any>(null);
 
-const UserContext = createContext<UserContextType | undefined>(undefined);
-
-export const UserProvider = ({ children }: { children: ReactNode }) => {
+export const UserProvider = ({ children }: any) => {
   const [user, setUser] = useState<User | null>(null);
 
   return (
@@ -22,10 +17,4 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export const useUser = () => {
-  const context = useContext(UserContext);
-  if (!context) {
-    throw new Error("useUser must be used inside UserProvider");
-  }
-  return context;
-};
+export const useUser = () => useContext(UserContext);

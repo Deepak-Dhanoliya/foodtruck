@@ -12,6 +12,7 @@
       "supportsTablet": true
     },
     "android": {
+      "googleServicesFile": "./android/app/google-services.json",
       "userInterfaceStyle": "light",
       "config": {
         "googleMaps": {
@@ -27,7 +28,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.deepakdhanoliya.foodtruck"
+      "package": "com.deepak.foodtruck"
     },
     "web": {
       "output": "static",
