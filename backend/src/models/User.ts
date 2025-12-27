@@ -7,7 +7,7 @@ const UserSchema = new mongoose.Schema(
     mobile: String,
     age: String,
 
-    fcmToken: { type: String, default: null },
+    pushToken: { type: String, default: null },
 
     location: {
       address: String,

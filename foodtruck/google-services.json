@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "756052265540",
+    "project_id": "foodtruck-bffe9",
+    "storage_bucket": "foodtruck-bffe9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:756052265540:android:60d420c3a1c3349ee4ca11",
+        "android_client_info": {
+          "package_name": "com.deepak.foodtruck"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCwyaSeM1kIb11dnU2yIhlCBZyFo4-jt5c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

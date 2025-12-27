@@ -21,17 +21,17 @@ router.post("/check-mobile", async (req, res) => {
       return res.json({ exists: false });
     }
 
-    /* SAVE FCM TOKEN IF PROVIDED */
+    /* SAVE PUSH TOKEN IF PROVIDED */
     if (fcmToken) {
-      user.fcmToken = fcmToken;
+      user.pushToken = fcmToken;
       await user.save();
 
       /* SEND LOGIN NOTIFICATION */
-      await sendPushNotification(
-        fcmToken,
-        "Login Successful 🎉",
-        "Welcome back! You have logged in successfully."
-      );
+      // await sendPushNotification(
+      //   fcmToken,
+      //   "Login Successful 🎉",
+      //   "Welcome back! You have logged in successfully."
+      // );
     }
 
     res.json({
@@ -55,6 +55,24 @@ router.post("/location", async (req, res) => {
   const { userId, location } = req.body;
 
   await User.findByIdAndUpdate(userId, { location });
+
+  res.json({ success: true });
+});
+
+router.post("/send-login-notification", async (req, res) => {
+  const { mobile } = req.body;
+
+  const user = await User.findOne({ mobile });
+
+  if (!user?.pushToken) {
+    return res.json({ success: false, message: "No push token" });
+  }
+  
+  await sendPushNotification(
+    user.pushToken,
+    "Login Successful 🎉",
+    "Welcome back to FoodTruck!"
+  );
 
   res.json({ success: true });
 });

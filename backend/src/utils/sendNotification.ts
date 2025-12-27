@@ -1,36 +1,25 @@
-import admin from "firebase-admin";
+import fetch from "node-fetch";
 
-/* INIT FIREBASE ADMIN (ONLY ONCE) */
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-    }),
-  });
-}
-
-/* SEND PUSH NOTIFICATION */
 export async function sendPushNotification(
-  token: string,
+  expoPushToken: string,
   title: string,
   body: string
 ) {
-  try {
-    await admin.messaging().send({
-      token,
-      notification: {
-        title,
-        body,
-      },
-      android: {
-        priority: "high",
-      },
-    });
+  const response = await fetch("https://exp.host/--/api/v2/push/send", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      to: expoPushToken,   // ✅ Expo token
+      sound: "default",
+      title,
+      body,
+    }),
+  });
 
-    console.log("Notification sent successfully");
-  } catch (error) {
-    console.error("FCM error:", error);
-  }
+  const data = await response.json();
+  console.log("EXPO RESPONSE 👉", data);
+  return data;
 }

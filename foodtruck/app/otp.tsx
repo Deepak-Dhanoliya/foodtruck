@@ -14,7 +14,6 @@ import { registerForPushNotifications } from "@/utils/notification";
 import { API_URL } from "@/constants/api";
 
 export default function OTPScreen() {
-  
   const router = useRouter();
   const { mobile } = useLocalSearchParams<{ mobile: string | string[] }>();
   const mobileParam = Array.isArray(mobile) ? mobile[0] : mobile;
@@ -44,7 +43,7 @@ export default function OTPScreen() {
       return;
     }
     const token = await registerForPushNotifications();
-    if(!token){
+    if (!token) {
       setError("Push token not available");
       return;
     }
@@ -57,6 +56,12 @@ export default function OTPScreen() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ mobile: mobileParam, pushToken: token }),
+    });
+
+    await fetch(`${API_URL}/api/user/send-login-notification`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mobile }),
     });
 
     router.replace({
