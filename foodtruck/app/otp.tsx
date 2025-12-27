@@ -10,7 +10,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState, useRef } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { useUser } from "@/context/UserContext";
-import { registerForPushNotifications } from "@/utils/notification";
+import { registerForPushNotifications } from "../utils/notifications";
 import { API_URL } from "@/constants/api";
 
 export default function OTPScreen() {
