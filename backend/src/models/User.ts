@@ -6,6 +6,9 @@ const UserSchema = new mongoose.Schema(
     email: String,
     mobile: String,
     age: String,
+
+    fcmToken: { type: String, default: null },
+
     location: {
       address: String,
       latitude: Number,

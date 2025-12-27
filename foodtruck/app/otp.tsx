@@ -14,8 +14,10 @@ import { registerForPushNotifications } from "@/utils/notification";
 import { API_URL } from "@/constants/api";
 
 export default function OTPScreen() {
+  
   const router = useRouter();
-  const { mobile } = useLocalSearchParams<{ mobile: string }>();
+  const { mobile } = useLocalSearchParams<{ mobile: string | string[] }>();
+  const mobileParam = Array.isArray(mobile) ? mobile[0] : mobile;
   const { setUser } = useUser();
   const [otp, setOtp] = useState(["", "", "", ""]);
   const [error, setError] = useState("");
@@ -42,16 +44,21 @@ export default function OTPScreen() {
       return;
     }
     const token = await registerForPushNotifications();
+    if(!token){
+      setError("Push token not available");
+      return;
+    }
     setUser({
-      mobile,
+      mobile: mobileParam,
       pushToken: token,
     });
 
     await fetch(`${API_URL}/api/user/save-token`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ mobile, pushToken: token }),
+      body: JSON.stringify({ mobile: mobileParam, pushToken: token }),
     });
+
     router.replace({
       pathname: "/(tabs)",
       params: { mobile },

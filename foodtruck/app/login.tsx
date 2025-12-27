@@ -5,20 +5,48 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-  ImageBackground,
   KeyboardAvoidingView,
   Platform,
   Image,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { API_URL } from "../constants/api";
+import * as Notifications from "expo-notifications";
 
 export default function LoginScreen() {
   const router = useRouter();
+
   const [mobile, setMobile] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [fcmToken, setFcmToken] = useState<string | null>(null);
+
+  /* ================= GET FCM TOKEN ================= */
+
+  useEffect(() => {
+    const registerForPush = async () => {
+      const { status } = await Notifications.getPermissionsAsync();
+
+      let finalStatus = status;
+      if (status !== "granted") {
+        const permission = await Notifications.requestPermissionsAsync();
+        finalStatus = permission.status;
+      }
+
+      if (finalStatus !== "granted") {
+        console.log("Notification permission not granted");
+        return;
+      }
+
+      const token = (await Notifications.getExpoPushTokenAsync()).data;
+      setFcmToken(token);
+    };
+
+    registerForPush();
+  }, []);
+
+  /* ================= LOGIN ================= */
 
   const handleLogin = async () => {
     if (!mobile) {
@@ -33,7 +61,10 @@ export default function LoginScreen() {
       const res = await fetch(`${API_URL}/api/user/check-mobile`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mobile }),
+        body: JSON.stringify({
+          mobile,
+          fcmToken, // ✅ send token to backend
+        }),
       });
 
       const data = await res.json();
@@ -53,6 +84,8 @@ export default function LoginScreen() {
     }
   };
 
+  /* ================= UI (UNCHANGED) ================= */
+
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
@@ -62,6 +95,7 @@ export default function LoginScreen() {
         source={require("../assets/images/pizza.png")}
         style={styles.image}
       />
+
       <View style={styles.card}>
         <Text style={styles.title}>Welcome Back</Text>
         <Text style={styles.subtitle}>Login to your account</Text>
@@ -106,10 +140,6 @@ export default function LoginScreen() {
 /* ================= STYLES ================= */
 
 const styles = StyleSheet.create({
-  bg: {
-    flex: 1,
-    // justifyContent: "flex-end",
-  },
   image: {
     width: "100%",
     height: "30%",

@@ -24,14 +24,14 @@ export async function registerForPushNotifications() {
     return null;
   }
 
-  const token = (
-    await Notifications.getExpoPushTokenAsync({
-      projectId: Constants.expoConfig?.extra?.eas?.projectId,
-    })
-  ).data;
+  const tokenResponse = await Notifications.getExpoPushTokenAsync({
+    projectId: Constants.expoConfig?.extra?.eas?.projectId,
+  });
+
+  const token = tokenResponse.data;
 
   if (Platform.OS === "android") {
-    Notifications.setNotificationChannelAsync("default", {
+    await Notifications.setNotificationChannelAsync("default", {
       name: "default",
       importance: Notifications.AndroidImportance.MAX,
     });
