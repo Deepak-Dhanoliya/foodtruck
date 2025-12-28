@@ -61,7 +61,7 @@ export default function OTPScreen() {
     await fetch(`${API_URL}/api/user/send-login-notification`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ mobile }),
+      body: JSON.stringify({ mobile: mobileParam }),
     });
 
     router.replace({
