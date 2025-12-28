@@ -9,6 +9,15 @@ export async function registerForPushNotifications() {
     return null;
   }
 
+  /* 🔥 CREATE CHANNEL FIRST (Android requirement) */
+  if (Platform.OS === "android") {
+    await Notifications.setNotificationChannelAsync("default", {
+      name: "default",
+      importance: Notifications.AndroidImportance.MAX,
+      sound: "default",
+    });
+  }
+
   const { status: existingStatus } =
     await Notifications.getPermissionsAsync();
 
@@ -28,14 +37,5 @@ export async function registerForPushNotifications() {
     projectId: Constants.expoConfig?.extra?.eas?.projectId,
   });
 
-  const token = tokenResponse.data;
-
-  if (Platform.OS === "android") {
-    await Notifications.setNotificationChannelAsync("default", {
-      name: "default",
-      importance: Notifications.AndroidImportance.MAX,
-    });
-  }
-
-  return token;
+  return tokenResponse.data;
 }

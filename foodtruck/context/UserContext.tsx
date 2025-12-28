@@ -1,7 +1,7 @@
 import { createContext, useContext, useState } from "react";
 
 type User = {
-  mobile: string;
+  mobile?: string;
   pushToken?: string;
 };
 

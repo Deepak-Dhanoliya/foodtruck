@@ -10,16 +10,20 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState, useRef } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { useUser } from "@/context/UserContext";
-import { registerForPushNotifications } from "../utils/notifications";
 import { API_URL } from "@/constants/api";
+import { registerForPushNotifications } from "@/utils/notifications";
 
 export default function OTPScreen() {
   const router = useRouter();
   const { mobile } = useLocalSearchParams<{ mobile: string | string[] }>();
   const mobileParam = Array.isArray(mobile) ? mobile[0] : mobile;
-  const { setUser } = useUser();
+
+  const { user } = useUser();
+
   const [otp, setOtp] = useState(["", "", "", ""]);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const inputs = useRef<Array<TextInput | null>>([]);
 
   const handleChange = (value: string, index: number) => {
@@ -36,67 +40,84 @@ export default function OTPScreen() {
   };
 
   const verifyOtp = async () => {
+    if (loading) return;
+
     const enteredOtp = otp.join("");
 
     if (enteredOtp !== "1234") {
       setError("Incorrect OTP. Please try again.");
       return;
     }
-    const token = await registerForPushNotifications();
-    if (!token) {
-      setError("Push token not available");
-      return;
+
+    try {
+      setLoading(true);
+
+      let pushToken = user?.pushToken;
+
+      // 🔥 1. Generate token if missing
+      if (!pushToken) {
+        pushToken = await registerForPushNotifications();
+        if (!pushToken) {
+          setError("Unable to get notification permission");
+          return;
+        }
+      }
+
+      // 🔥 2. Save token in backend
+      await fetch(`${API_URL}/auth/save-token`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mobile: mobileParam,
+          pushToken,
+        }),
+      });
+
+      // 🔥 3. Trigger notification
+      setTimeout(async () => {
+        await fetch(`${API_URL}/api/user/send-login-notification`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mobile: mobileParam }),
+        });
+      }, 1000);
+
+      // 🔥 4. Navigate LAST
+      router.replace({
+        pathname: "/(tabs)",
+        params: { mobile: mobileParam },
+      });
+    } catch (err) {
+      console.log("OTP error:", err);
+      setError("Something went wrong. Try again.");
+    } finally {
+      setLoading(false);
     }
-    setUser({
-      mobile: mobileParam,
-      pushToken: token,
-    });
-
-    await fetch(`${API_URL}/api/user/save-token`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ mobile: mobileParam, pushToken: token }),
-    });
-
-    await fetch(`${API_URL}/api/user/send-login-notification`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ mobile: mobileParam }),
-    });
-
-    router.replace({
-      pathname: "/(tabs)",
-      params: { mobile },
-    });
   };
 
   return (
     <View style={styles.container}>
-      {/* BACK ICON */}
       <TouchableOpacity style={styles.back} onPress={() => router.back()}>
         <Ionicons name="arrow-back" size={24} color="#fff" />
       </TouchableOpacity>
 
-      {/* TOP IMAGE */}
       <Image
         source={require("../assets/images/pizza.png")}
         style={styles.image}
       />
 
-      {/* WHITE CARD */}
       <View style={styles.card}>
         <Text style={styles.heading}>Welcome Back</Text>
         <Text style={styles.subHeading}>Login to your account</Text>
 
         <Text style={styles.otpLabel}>Enter OTP</Text>
 
-        {/* OTP BOXES */}
         <View style={styles.otpRow}>
           {otp.map((digit, index) => (
             <TextInput
               key={index}
-              ref={(ref) => {
-                inputs.current[index] = ref;
+              ref={(el) => {
+                inputs.current[index] = el;
               }}
               value={digit}
               onChangeText={(v) => handleChange(v, index)}
@@ -106,17 +127,19 @@ export default function OTPScreen() {
             />
           ))}
         </View>
+
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
-        {/* CONTINUE BUTTON */}
-        <TouchableOpacity style={styles.button} onPress={verifyOtp}>
+        <TouchableOpacity
+          style={[styles.button, loading && { opacity: 0.6 }]}
+          onPress={verifyOtp}
+          disabled={loading}
+        >
           <Text style={styles.buttonText}>Continue</Text>
         </TouchableOpacity>
 
-        {/* RESEND */}
         <Text style={styles.resend}>Resend OTP</Text>
 
-        {/* SIGN UP */}
         <Text style={styles.footer}>
           Don’t have an account?{" "}
           <Text style={styles.signup} onPress={() => router.replace("/signup")}>
@@ -127,7 +150,6 @@ export default function OTPScreen() {
     </View>
   );
 }
-
 /* ================= STYLES ================= */
 
 const styles = StyleSheet.create({

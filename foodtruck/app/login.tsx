@@ -10,9 +10,8 @@ import {
   Image,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { API_URL } from "../constants/api";
-import * as Notifications from "expo-notifications";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -20,31 +19,6 @@ export default function LoginScreen() {
   const [mobile, setMobile] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [fcmToken, setFcmToken] = useState<string | null>(null);
-
-  /* ================= GET FCM TOKEN ================= */
-
-  useEffect(() => {
-    const registerForPush = async () => {
-      const { status } = await Notifications.getPermissionsAsync();
-
-      let finalStatus = status;
-      if (status !== "granted") {
-        const permission = await Notifications.requestPermissionsAsync();
-        finalStatus = permission.status;
-      }
-
-      if (finalStatus !== "granted") {
-        console.log("Notification permission not granted");
-        return;
-      }
-
-      const token = (await Notifications.getExpoPushTokenAsync()).data;
-      setFcmToken(token);
-    };
-
-    registerForPush();
-  }, []);
 
   /* ================= LOGIN ================= */
 
@@ -61,10 +35,7 @@ export default function LoginScreen() {
       const res = await fetch(`${API_URL}/api/user/check-mobile`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          mobile,
-          fcmToken, // ✅ send token to backend
-        }),
+        body: JSON.stringify({ mobile }), // ✅ ONLY mobile
       });
 
       const data = await res.json();
@@ -72,7 +43,7 @@ export default function LoginScreen() {
       if (data.exists) {
         router.push({
           pathname: "/otp",
-          params: { mobile, userId: data.userId },
+          params: { mobile },
         });
       } else {
         setError("Signup required. Mobile number not registered.");

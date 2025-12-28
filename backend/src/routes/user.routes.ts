@@ -59,6 +59,30 @@ router.post("/location", async (req, res) => {
   res.json({ success: true });
 });
 
+router.post("/save-token", async (req, res) => {
+  try {
+    const { mobile, pushToken } = req.body;
+
+    if (!mobile || !pushToken) {
+      return res.status(400).json({ success: false });
+    }
+
+    const user = await User.findOne({ mobile });
+
+    if (!user) {
+      return res.status(404).json({ success: false });
+    }
+
+    user.pushToken = pushToken;
+    await user.save();
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Save token error:", err);
+    res.status(500).json({ success: false });
+  }
+});
+
 router.post("/send-login-notification", async (req, res) => {
   const { mobile } = req.body;
 
@@ -67,7 +91,7 @@ router.post("/send-login-notification", async (req, res) => {
   if (!user?.pushToken) {
     return res.json({ success: false, message: "No push token" });
   }
-  
+
   await sendPushNotification(
     user.pushToken,
     "Login Successful 🎉",
