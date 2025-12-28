@@ -22,17 +22,17 @@ router.post("/check-mobile", async (req, res) => {
     }
 
     /* SAVE PUSH TOKEN IF PROVIDED */
-    if (fcmToken) {
-      user.pushToken = fcmToken;
-      await user.save();
+    // if (fcmToken) {
+    //   user.pushToken = fcmToken;
+    //   await user.save();
 
-      /* SEND LOGIN NOTIFICATION */
-      // await sendPushNotification(
-      //   fcmToken,
-      //   "Login Successful 🎉",
-      //   "Welcome back! You have logged in successfully."
-      // );
-    }
+    //   /* SEND LOGIN NOTIFICATION */
+    //   // await sendPushNotification(
+    //   //   fcmToken,
+    //   //   "Login Successful 🎉",
+    //   //   "Welcome back! You have logged in successfully."
+    //   // );
+    // }
 
     res.json({
       exists: true,

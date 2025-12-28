@@ -11,7 +11,6 @@ import { useState, useRef } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { useUser } from "@/context/UserContext";
 import { API_URL } from "@/constants/api";
-import { registerForPushNotifications } from "@/utils/notifications";
 
 export default function OTPScreen() {
   const router = useRouter();
@@ -55,13 +54,13 @@ export default function OTPScreen() {
       let pushToken = user?.pushToken;
 
       // 🔥 1. Generate token if missing
-      if (!pushToken) {
-        pushToken = await registerForPushNotifications();
-        if (!pushToken) {
-          setError("Unable to get notification permission");
-          return;
-        }
-      }
+      // if (!pushToken) {
+      //   pushToken = await registerForPushNotifications();
+      //   if (!pushToken) {
+      //     setError("Unable to get notification permission");
+      //     return;
+      //   }
+      // }
 
       // 🔥 2. Save token in backend
       await fetch(`${API_URL}/auth/save-token`, {
@@ -74,13 +73,12 @@ export default function OTPScreen() {
       });
 
       // 🔥 3. Trigger notification
-      setTimeout(async () => {
-        await fetch(`${API_URL}/api/user/send-login-notification`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mobile: mobileParam }),
-        });
-      }, 1000);
+
+      await fetch(`${API_URL}/api/user/send-login-notification`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mobile: mobileParam }),
+      });
 
       // 🔥 4. Navigate LAST
       router.replace({

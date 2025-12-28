@@ -7,24 +7,11 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useEffect } from "react";
-import { useUser } from "@/context/UserContext";
-import { registerForPushNotifications } from "@/utils/notifications";
 
 export default function SplashScreen() {
   const router = useRouter();
-  const { setUser } = useUser();
 
-  useEffect(() => {
-    const initPushToken = async () => {
-      const token = await registerForPushNotifications();
-      if (token) {
-        setUser({ pushToken: token });
-      }
-    };
-
-    initPushToken();
-  }, []);
+  
 
   return (
     <ImageBackground
