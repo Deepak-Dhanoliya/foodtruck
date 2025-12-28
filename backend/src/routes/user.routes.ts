@@ -72,7 +72,7 @@ router.post("/save-token", async (req, res) => {
     if (!user) {
       return res.status(404).json({ success: false });
     }
-
+    console.log("this is push token ", pushToken);
     user.pushToken = pushToken;
     await user.save();
 
