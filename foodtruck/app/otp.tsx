@@ -63,7 +63,7 @@ export default function OTPScreen() {
       // }
 
       // 🔥 2. Save token in backend
-      await fetch(`${API_URL}/auth/save-token`, {
+      await fetch(`${API_URL}/api/user/save-token`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
