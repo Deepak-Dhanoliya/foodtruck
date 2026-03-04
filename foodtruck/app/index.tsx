@@ -1,3 +1,4 @@
+// indec.tsx
 import {
   View,
   Text,
